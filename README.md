@@ -41,6 +41,7 @@ node check.mjs
 - When moving a meeting, excludes only that meeting, retaining all other scheduled classes.
 - Checks standard timetable start times, with selectable durations. It does not search every possible minute of the day.
 - The **Student free time** menu accepts a roll number and shows that student's exact free periods for each weekday, within the timetable's 8:00 AM–5:30 PM coverage.
+- The **Student timetable** menu accepts a roll number and shows that student's scheduled classes for each weekday.
 
 Teacher and room availability are not checked. The app suggests times; it does not save rearrangements or send notifications. All times are campus local time. Course titles truncated in the PDF remain truncated; student names were not supplied.
 

@@ -10,6 +10,18 @@ assert.equal(data.students.reduce((n,s)=>n+s.meetings.length,0),12838);
 const weekly=engine.freeSlots(' 20p-0104 ');
 assert.equal(weekly.student.roll,'20P-0104');
 assert.equal(weekly.days.length,5);
+const timetable=engine.studentTimetable(' 20p-0104 ');
+assert.equal(timetable.student.roll,'20P-0104');
+assert.equal(timetable.days.length,5);
+assert.equal(timetable.days.reduce((n,day)=>n+day.meetings.length,0),weekly.student.meetings.length);
+for(const {day,meetings} of timetable.days){
+ let previousStart=-Infinity;
+ for(const meeting of meetings){
+  assert.equal(meeting.day,day);
+  assert.ok(meeting.start>=previousStart);
+  previousStart=meeting.start;
+ }
+}
 for(const {day,slots} of weekly.days){
  let previousEnd=Math.min(...data.starts);
  for(const slot of slots){
@@ -19,6 +31,7 @@ for(const {day,slots} of weekly.days){
  }
 }
 assert.throws(()=>engine.freeSlots('not-a-roll-number'),/No timetable found/);
+assert.throws(()=>engine.studentTimetable('not-a-roll-number'),/No timetable found/);
 // An independent set-based occupancy calculation checks every candidate
 // for every section against all individual student schedules.
 let compared=0;
@@ -65,4 +78,4 @@ console.log(JSON.stringify({verifiedCandidateChecks:compared,allStudentEntries:1
 // Check local asset references and required interface controls.
 const html=fs.readFileSync(new URL('./dist/index.html',import.meta.url),'utf8');
 for(const asset of ['styles.css','app.js','engine.mjs','data.json'])assert.ok(fs.existsSync(new URL('./dist/'+asset,import.meta.url)));
-for(const id of ['planner','course','section','session','duration','availability','slot-detail','roster','student-menu','student-lookup','student-roll','student-results','student-days'])assert.ok(html.includes(`id="${id}"`));
+for(const id of ['planner','course','section','session','duration','availability','slot-detail','roster','student-menu','student-lookup','student-roll','student-results','student-days','student-timetable-menu','timetable-lookup','timetable-roll','timetable-results','timetable-days'])assert.ok(html.includes(`id="${id}"`));

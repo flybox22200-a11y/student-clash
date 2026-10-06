@@ -16,10 +16,14 @@ export function createEngine(data){
   g.students.sort((a,b)=>a.roll.localeCompare(b.roll));
   g.meetings.sort((a,b)=>{a=meetingMap.get(a);b=meetingMap.get(b);return a.day-b.day||a.start-b.start;});
  }
- function freeSlots(roll){
+ function findStudent(roll){
   if(typeof roll!=='string'||!roll.trim())throw Error('Enter a student roll number.');
   const student=data.students.find(s=>s.roll.toUpperCase()===roll.trim().toUpperCase());
   if(!student)throw Error(`No timetable found for roll number "${roll.trim()}". Check the roll number and try again.`);
+  return student;
+ }
+ function freeSlots(roll){
+  const student=findStudent(roll);
   const dayStart=Math.min(...data.starts);
   const days=data.days.map((name,day)=>{
    const meetings=student.meetings.map(id=>meetingMap.get(id))
@@ -39,6 +43,16 @@ export function createEngine(data){
    }
    if(cursor<data.dayEnd)slots.push({start:cursor,end:data.dayEnd});
    return {day,name,slots};
+  });
+  return {student,days};
+ }
+ function studentTimetable(roll){
+  const student=findStudent(roll);
+  const days=data.days.map((name,day)=>{
+   const meetings=student.meetings.map(id=>meetingMap.get(id))
+    .filter(meeting=>meeting.day===day)
+    .sort((a,b)=>a.start-b.start||a.end-b.end);
+   return {day,name,meetings};
   });
   return {student,days};
  }
@@ -68,5 +82,5 @@ export function createEngine(data){
   }
   return {group,mode,duration,moved,cells};
  }
- return {data,meetingMap,groups,check,freeSlots};
+ return {data,meetingMap,groups,check,freeSlots,studentTimetable};
 }

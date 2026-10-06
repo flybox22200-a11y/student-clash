@@ -15,6 +15,7 @@
     <nav class="top-nav" aria-label="Main menu">
       <button id="planner-menu" class="nav-link active" type="button" aria-current="page">Class planner</button>
       <button id="student-menu" class="nav-link" type="button">Student free time</button>
+      <button id="student-timetable-menu" class="nav-link" type="button">Student timetable</button>
     </nav>
     <span class="term">FALL 2026 <span>Timetable V5</span></span>
   </header>
@@ -113,6 +114,31 @@
         </div>
         <p class="hint">Free periods are calculated from all scheduled classes, including overlapping and extended meetings.</p>
         <div id="student-days" class="student-days"></div>
+      </div>
+    </section>
+    <section id="student-timetable-view" class="student-view" aria-labelledby="student-timetable-title" hidden>
+      <form id="timetable-lookup" class="student-search">
+        <div class="student-search-copy">
+          <p class="eyebrow">PERSONAL TIMETABLE</p>
+          <h2 id="student-timetable-title">View your classes this week.</h2>
+          <p>Enter your roll number to see your scheduled classes, Monday through Friday.</p>
+        </div>
+        <div class="student-search-controls">
+          <label for="timetable-roll">Student roll number</label>
+          <div class="student-input-row">
+            <input id="timetable-roll" name="roll" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 22P-0008" required>
+            <button class="primary" type="submit">Show timetable</button>
+          </div>
+          <p class="hint">Roll numbers are matched without regard to letter case.</p>
+        </div>
+      </form>
+      <div id="timetable-error" class="error" role="alert" hidden></div>
+      <div id="timetable-results" class="student-results" hidden aria-live="polite">
+        <div class="student-result-heading">
+          <div><p class="eyebrow">WEEKLY TIMETABLE</p><h2 id="timetable-result-roll"></h2></div>
+          <span id="timetable-class-count" class="checked-badge"></span>
+        </div>
+        <div id="timetable-days" class="student-days timetable-days"></div>
       </div>
     </section>
     <footer><span>Source: Student Timetables V5 · Fall 2026</span><span>Availability suggestions only · No timetable changes are saved</span><span class="made-by">Made by Shoaib</span></footer>

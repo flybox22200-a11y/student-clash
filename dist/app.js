@@ -28,15 +28,22 @@ function group(){return engine.groups.get($('course').value+'|'+$('section').val
 function stale(){if(result)$('stale').hidden=false;}
 function showView(view){
  const student=view==='student';
+ const timetable=view==='timetable';
  $('faculty-view').hidden=student;
  $('student-view').hidden=!student;
- $('planner-menu').classList.toggle('active',!student);$('student-menu').classList.toggle('active',student);
+ $('student-timetable-view').hidden=!timetable;
+ $('planner-menu').classList.toggle('active',!student&&!timetable);$('student-menu').classList.toggle('active',student);$('student-timetable-menu').classList.toggle('active',timetable);
+ $('planner-menu').removeAttribute('aria-current');$('student-menu').removeAttribute('aria-current');$('student-timetable-menu').removeAttribute('aria-current');
  if(student){
-  $('planner-menu').removeAttribute('aria-current');$('student-menu').setAttribute('aria-current','page');
+  $('student-menu').setAttribute('aria-current','page');
   $('page-eyebrow').textContent='STUDENT TIMETABLE';$('page-title').textContent='Find your free time this week.';
   $('page-description').textContent='See your available periods around your scheduled classes.';
+ }else if(timetable){
+  $('student-timetable-menu').setAttribute('aria-current','page');
+  $('page-eyebrow').textContent='STUDENT TIMETABLE';$('page-title').textContent='View your classes this week.';
+  $('page-description').textContent='Enter your roll number to see your scheduled classes from Monday to Friday.';
  }else{
-  $('student-menu').removeAttribute('aria-current');$('planner-menu').setAttribute('aria-current','page');
+  $('planner-menu').setAttribute('aria-current','page');
   $('page-eyebrow').textContent='CLASS SCHEDULING';$('page-title').textContent='A time that works for everyone.';
   $('page-description').textContent="Select your course and section to check every student's timetable.";
  }
@@ -71,6 +78,40 @@ function lookupStudent(event){
   $('student-results').hidden=false;
  }catch(error){
   $('student-results').hidden=true;$('student-error').textContent=error.message;$('student-error').hidden=false;
+ }
+}
+function lookupTimetable(event){
+ event.preventDefault();$('timetable-error').hidden=true;
+ try{
+  const {student,days}=engine.studentTimetable($('timetable-roll').value);
+  $('timetable-result-roll').textContent=student.roll;
+  const count=days.reduce((total,day)=>total+day.meetings.length,0);
+  $('timetable-class-count').textContent=`${count} scheduled ${count===1?'class':'classes'} this week`;
+  const container=$('timetable-days');container.replaceChildren();
+  for(const day of days){
+   const card=document.createElement('section');card.className='student-day timetable-day';
+   const heading=document.createElement('h3');heading.textContent=day.name;card.append(heading);
+   if(day.meetings.length){
+    const list=document.createElement('ul');list.className='timetable-meetings';
+    for(const meeting of day.meetings){
+     const item=document.createElement('li');
+     const course=document.createElement('strong');
+     course.textContent=`${meeting.code} · ${meeting.section}`;
+     const title=document.createElement('span');title.textContent=meeting.title;
+     const time=document.createElement('span');time.textContent=range(meeting.start,meeting.end);
+     const room=document.createElement('span');room.textContent=`${meeting.instructor} · ${meeting.room}`;
+     item.append(course,title,time,room);
+     list.append(item);
+    }
+    card.append(list);
+   }else{
+    const message=document.createElement('p');message.className='no-free-periods';message.textContent='No scheduled classes';card.append(message);
+   }
+   container.append(card);
+  }
+  $('timetable-results').hidden=false;
+ }catch(error){
+  $('timetable-results').hidden=true;$('timetable-error').textContent=error.message;$('timetable-error').hidden=false;
  }
 }
 function syncSections(){
@@ -174,7 +215,9 @@ async function init(){
   $('planner').addEventListener('submit',e=>{e.preventDefault();run();});
   $('planner-menu').addEventListener('click',()=>showView('planner'));
   $('student-menu').addEventListener('click',()=>showView('student'));
+  $('student-timetable-menu').addEventListener('click',()=>showView('timetable'));
   $('student-lookup').addEventListener('submit',lookupStudent);
+  $('timetable-lookup').addEventListener('submit',lookupTimetable);
   // A useful first view; the same action remains available after selection.
   run();
   registerTools();

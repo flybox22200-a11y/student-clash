@@ -20,6 +20,10 @@
 .free-periods{list-style:none;display:grid;gap:8px;margin:0;padding:0}
 .free-periods li{border:1px solid #cde9da;border-radius:6px;background:#eaf7f0;color:#12664e;padding:9px 10px;font-size:13px;font-weight:600;line-height:1.4}
 .no-free-periods{font-size:13px;margin:0;color:#6b7b90}
+.timetable-meetings{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.timetable-meetings li{display:grid;gap:4px;border:1px solid #dce5ec;border-radius:6px;background:white;padding:9px 10px;font-size:12px;line-height:1.4}
+.timetable-meetings li strong{color:#20334e;font-size:13px}
+.timetable-meetings li span{color:#53667e}
 .made-by{font-weight:600;color:#53667e}
 @media(max-width:900px){.topbar{flex-wrap:wrap}.top-nav{order:3;flex-basis:100%;margin:4px 0 0}.student-search{grid-template-columns:1fr;gap:20px}.student-days{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){
