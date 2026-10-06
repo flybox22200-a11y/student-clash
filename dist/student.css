@@ -1,0 +1,53 @@
+.top-nav{display:flex;align-items:center;gap:6px;flex:1;margin:0 20px}
+.nav-link{border:1px solid transparent;border-radius:7px;background:transparent;color:#c5d1e0;padding:10px 13px;font-size:14px;font-weight:600;white-space:nowrap}
+.nav-link:hover{background:#203653;color:white}
+.nav-link.active{background:#263f60;color:white;border-color:#466080}
+.student-view{display:grid;gap:20px}
+.student-search{display:grid;grid-template-columns:minmax(240px,1fr) minmax(320px,1fr);gap:32px;align-items:center;background:white;border:1px solid var(--line);border-radius:14px;padding:28px}
+.student-search-copy h2,.student-result-heading h2{font-size:22px;letter-spacing:-.5px;margin:0 0 8px}
+.student-search-copy p:last-child{font-size:14px;margin:0}
+.student-search-controls label{display:block;font-size:14px;font-weight:600;margin:0 0 8px}
+.student-input-row{display:flex;gap:10px}
+.student-input-row input{min-width:0;flex:1;border:1px solid #cbd5e1;border-radius:7px;padding:10px 12px;color:#20334e}
+.student-input-row .primary{width:auto;min-height:46px;margin:0;padding:0 18px;white-space:nowrap}
+.student-results{background:white;border:1px solid var(--line);border-radius:14px;padding:28px}
+.student-result-heading{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.student-result-heading .eyebrow{margin-bottom:8px}
+.student-results>.hint{margin:0 0 20px}
+.student-days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.student-day{min-height:148px;border:1px solid #dce5ec;border-radius:9px;background:#f8fafc;padding:16px}
+.student-day h3{font-size:15px;margin:0 0 14px}
+.free-periods{list-style:none;display:grid;gap:8px;margin:0;padding:0}
+.free-periods li{border:1px solid #cde9da;border-radius:6px;background:#eaf7f0;color:#12664e;padding:9px 10px;font-size:13px;font-weight:600;line-height:1.4}
+.no-free-periods{font-size:13px;margin:0;color:#6b7b90}
+.made-by{font-weight:600;color:#53667e}
+@media(max-width:900px){.topbar{flex-wrap:wrap}.top-nav{order:3;flex-basis:100%;margin:4px 0 0}.student-search{grid-template-columns:1fr;gap:20px}.student-days{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){
+  main{min-width:0}
+  .topbar{padding:14px 16px;gap:10px}
+  .brand{font-size:20px;gap:8px}
+  .mark{font-size:29px}
+  .brand-sub{display:none}
+  .term{margin-left:auto;font-size:11px}
+  .term span{font-size:11px}
+  .top-nav{gap:6px;margin-top:2px}
+  .nav-link{flex:1;min-height:44px;padding:8px 6px;font-size:13px}
+  .heading{align-items:flex-start}
+  .heading h1{font-size:26px}
+  .workspace,.setup,.results{width:100%;min-width:0}
+  .setup form{display:block;padding:20px}
+  .setup form fieldset{display:block}
+  .setup form>select{width:100%;min-width:0}
+  .setup form .primary{min-height:48px}
+  .results{padding:18px 12px}
+  .student-search,.student-results{width:100%;min-width:0;padding:18px}
+  .student-input-row{align-items:stretch;flex-direction:column}
+  .student-input-row input{min-height:46px;font-size:16px}
+  .student-input-row .primary{width:100%;min-height:48px}
+  .student-days{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .student-day{min-width:0;padding:12px}
+  .student-result-heading{align-items:flex-start;flex-direction:column}
+  .grid-scroll{max-width:100%;overflow-x:auto}
+  footer{overflow-wrap:anywhere}
+}
+@media(max-width:360px){.student-days{grid-template-columns:1fr}}

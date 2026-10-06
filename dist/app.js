@@ -8,6 +8,47 @@ function fail(message){$('error').textContent=message;$('error').hidden=false;}
 function mode(){return document.querySelector('input[name="mode"]:checked').value;}
 function group(){return engine.groups.get($('course').value+'|'+$('section').value);}
 function stale(){if(result)$('stale').hidden=false;}
+function showView(view){
+ const student=view==='student';
+ $('faculty-view').hidden=student;$('student-view').hidden=!student;
+ $('planner-menu').classList.toggle('active',!student);$('student-menu').classList.toggle('active',student);
+ if(student){
+  $('planner-menu').removeAttribute('aria-current');$('student-menu').setAttribute('aria-current','page');
+  $('page-eyebrow').textContent='STUDENT TIMETABLE';$('page-title').textContent='Find your free time this week.';
+  $('page-description').textContent='See your available periods around your scheduled classes.';
+ }else{
+  $('student-menu').removeAttribute('aria-current');$('planner-menu').setAttribute('aria-current','page');
+  $('page-eyebrow').textContent='CLASS SCHEDULING';$('page-title').textContent='A time that works for everyone.';
+  $('page-description').textContent="Select your course and section to check every student's timetable.";
+ }
+}
+function lookupStudent(event){
+ event.preventDefault();$('student-error').hidden=true;
+ try{
+  const {student,days}=engine.freeSlots($('student-roll').value);
+  const count=days.reduce((total,day)=>total+day.slots.length,0);
+  $('student-result-roll').textContent=student.roll;
+  $('student-free-count').textContent=`${count} free ${count===1?'period':'periods'} this week`;
+  const container=$('student-days');container.replaceChildren();
+  for(const day of days){
+   const card=document.createElement('section');card.className='student-day';
+   const heading=document.createElement('h3');heading.textContent=day.name;card.append(heading);
+   if(day.slots.length){
+    const list=document.createElement('ul');list.className='free-periods';
+    for(const slot of day.slots){
+     const item=document.createElement('li');item.textContent=range(slot.start,slot.end);list.append(item);
+    }
+    card.append(list);
+   }else{
+    const message=document.createElement('p');message.className='no-free-periods';message.textContent='No free periods';card.append(message);
+   }
+   container.append(card);
+  }
+  $('student-results').hidden=false;
+ }catch(error){
+  $('student-results').hidden=true;$('student-error').textContent=error.message;$('student-error').hidden=false;
+ }
+}
 function syncSections(){
  const sections=[...engine.groups.values()].filter(g=>g.code===$('course').value).sort((a,b)=>a.section.localeCompare(b.section));
  $('section').replaceChildren(...sections.map(g=>new Option(g.section,g.section)));
@@ -97,6 +138,9 @@ async function init(){
   document.querySelectorAll('input[name="mode"]').forEach(el=>el.addEventListener('change',syncMode));
   $('session').addEventListener('change',syncMode);$('duration').addEventListener('change',stale);
   $('planner').addEventListener('submit',e=>{e.preventDefault();run();});
+  $('planner-menu').addEventListener('click',()=>showView('planner'));
+  $('student-menu').addEventListener('click',()=>showView('student'));
+  $('student-lookup').addEventListener('submit',lookupStudent);
   // A useful first view; the same action remains available after selection.
   run();
   registerTools();

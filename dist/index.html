@@ -1,7 +1,126 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ClassSlot — Class clash checker</title><meta name="description" content="Find a class time that works for every student in a course section."><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23132644'/%3E%3Cpath d='M8 10h16v15H8z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M11 6v7m10-7v7' stroke='%237be0c3' stroke-width='2'/%3E%3Cpath d='m12 20 3 3 6-7' fill='none' stroke='%237be0c3' stroke-width='2'/%3E%3C/svg%3E"><link rel="stylesheet" href="styles.css"></head>
-<body><header class="topbar"><div class="brand"><span class="mark" aria-hidden="true">▦</span>ClassSlot <span class="brand-sub">Faculty workspace</span></div><span class="term">FALL 2026 <span>Timetable V5</span></span></header>
-<main><div class="heading"><div><p class="eyebrow">CLASS SCHEDULING</p><h1>A time that works for everyone.</h1><p>Select your course and section to check every student's timetable.</p></div><div class="dataset"><strong>1,199</strong><span>student timetables loaded</span></div></div>
-<div class="workspace"><aside class="setup"><form id="planner"><div class="panel-heading"><span class="step">01</span><h2>Choose your class</h2></div><label for="course">Course</label><select id="course" required disabled><option>Loading courses…</option></select><label for="section">Section</label><select id="section" required disabled><option>Select a course</option></select><div id="selection-meta" class="selection-meta"></div><fieldset><legend>What are you planning?</legend><label class="radio"><input type="radio" name="mode" value="extra" checked> An additional class</label><label class="radio"><input type="radio" name="mode" value="move"> Move an existing class</label></fieldset><div id="move-controls" hidden><label for="session">Class to move</label><select id="session"></select><p class="hint">Only this class is removed from the clash check.</p></div><label for="duration">Class duration</label><select id="duration"><option value="80">80 minutes · standard class</option><option value="160">160 minutes · extended class</option><option value="60">60 minutes</option><option value="30">30 minutes</option></select><button id="rearrange" class="primary" type="submit" disabled>Rearrange class</button><p class="hint">Checks student availability. Teacher and room availability must be confirmed separately.</p></form><details id="roster-box"><summary>Enrolled students <span id="roster-count">—</span></summary><p class="hint">Students are identified by roll number in the source timetable.</p><div id="roster" class="roster"></div></details></aside>
-<section class="results" aria-label="Class availability"><div id="error" class="error" role="alert" hidden></div><div id="empty" class="empty"><div class="empty-icon">▦</div><h2>Find your next class slot</h2><p>Your course sections and their students are ready. Choose a class, then check availability.</p><div class="empty-legend"><span><i class="key free"></i>Everyone available</span><span><i class="key busy"></i>Student clashes</span></div></div><div id="result-content" hidden><div class="result-heading"><div><p class="eyebrow">02 / AVAILABILITY</p><h2 id="result-title"></h2><p id="result-description"></p></div><span id="checked-badge" class="checked-badge"></span></div><div id="stale" class="stale" hidden>Selection changed. Click “Rearrange class” to update the results.</div><div id="summary" class="summary"></div><div class="grid-title"><h3>Weekly slot check</h3><div class="legend"><span><i class="key free"></i>Available for all</span><span><i class="key busy"></i>Clashes</span></div></div><p class="hint grid-hint">Select a slot to see the students and courses involved. Times are campus local time.</p><div class="grid-scroll"><table id="availability" class="availability"><caption class="sr-only">Student availability for Monday through Friday</caption><thead><tr><th scope="col">Start time</th><th scope="col">Monday</th><th scope="col">Tuesday</th><th scope="col">Wednesday</th><th scope="col">Thursday</th><th scope="col">Friday</th></tr></thead><tbody></tbody></table></div><section id="slot-detail" class="slot-detail" tabindex="-1" aria-live="polite"></section></div></section></div>
-<footer><span>Source: Student Timetables V5 · Fall 2026</span><span>Availability suggestions only · No timetable changes are saved</span></footer><details class="source-notes"><summary>About the timetable data</summary><p>All 1,199 students and 96 course codes are included. Course titles ending in “…” were shortened in the original PDF. Student names were not provided. Clashes here are calculated from scheduled time overlaps; the source PDF's summary conflict count is not used.</p></details></main><script type="module" src="app.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ClassSlot — Class clash checker</title>
+  <meta name="description" content="Find a class time that works for every student in a course section, or check an individual student's free time.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23132644'/%3E%3Cpath d='M8 10h16v15H8z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M11 6v7m10-7v7' stroke='%237be0c3' stroke-width='2'/%3E%3Cpath d='m12 20 3 3 6-7' fill='none' stroke='%237be0c3' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="student.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark" aria-hidden="true">▦</span>ClassSlot <span class="brand-sub">Fall 2026</span></div>
+    <nav class="top-nav" aria-label="Main menu">
+      <button id="planner-menu" class="nav-link active" type="button" aria-current="page">Class planner</button>
+      <button id="student-menu" class="nav-link" type="button">Student free time</button>
+    </nav>
+    <span class="term">FALL 2026 <span>Timetable V5</span></span>
+  </header>
+  <main>
+    <div class="heading">
+      <div>
+        <p id="page-eyebrow" class="eyebrow">CLASS SCHEDULING</p>
+        <h1 id="page-title">A time that works for everyone.</h1>
+        <p id="page-description">Select your course and section to check every student's timetable.</p>
+      </div>
+      <div class="dataset"><strong>1,199</strong><span>student timetables loaded</span></div>
+    </div>
+    <div id="faculty-view" class="workspace">
+      <aside class="setup">
+        <form id="planner">
+          <div class="panel-heading"><span class="step">01</span><h2>Choose your class</h2></div>
+          <label for="course">Course</label><select id="course" required disabled><option>Loading courses…</option></select>
+          <label for="section">Section</label><select id="section" required disabled><option>Select a course</option></select>
+          <div id="selection-meta" class="selection-meta"></div>
+          <fieldset>
+            <legend>What are you planning?</legend>
+            <label class="radio"><input type="radio" name="mode" value="extra" checked> An additional class</label>
+            <label class="radio"><input type="radio" name="mode" value="move"> Move an existing class</label>
+          </fieldset>
+          <div id="move-controls" hidden>
+            <label for="session">Class to move</label><select id="session"></select>
+            <p class="hint">Only this class is removed from the clash check.</p>
+          </div>
+          <label for="duration">Class duration</label>
+          <select id="duration">
+            <option value="80">80 minutes · standard class</option>
+            <option value="160">160 minutes · extended class</option>
+            <option value="60">60 minutes</option>
+            <option value="30">30 minutes</option>
+          </select>
+          <button id="rearrange" class="primary" type="submit" disabled>Rearrange class</button>
+          <p class="hint">Checks student availability. Teacher and room availability must be confirmed separately.</p>
+        </form>
+        <details id="roster-box">
+          <summary>Enrolled students <span id="roster-count">—</span></summary>
+          <p class="hint">Students are identified by roll number in the source timetable.</p>
+          <div id="roster" class="roster"></div>
+        </details>
+      </aside>
+      <section class="results" aria-label="Class availability">
+        <div id="error" class="error" role="alert" hidden></div>
+        <div id="empty" class="empty">
+          <div class="empty-icon">▦</div><h2>Find your next class slot</h2>
+          <p>Your course sections and their students are ready. Choose a class, then check availability.</p>
+          <div class="empty-legend"><span><i class="key free"></i>Everyone available</span><span><i class="key busy"></i>Student clashes</span></div>
+        </div>
+        <div id="result-content" hidden>
+          <div class="result-heading">
+            <div><p class="eyebrow">02 / AVAILABILITY</p><h2 id="result-title"></h2><p id="result-description"></p></div>
+            <span id="checked-badge" class="checked-badge"></span>
+          </div>
+          <div id="stale" class="stale" hidden>Selection changed. Click “Rearrange class” to update the results.</div>
+          <div id="summary" class="summary"></div>
+          <div class="grid-title">
+            <h3>Weekly slot check</h3>
+            <div class="legend"><span><i class="key free"></i>Available for all</span><span><i class="key busy"></i>Clashes</span></div>
+          </div>
+          <p class="hint grid-hint">Select a slot to see the students and courses involved. Times are campus local time.</p>
+          <div class="grid-scroll">
+            <table id="availability" class="availability">
+              <caption class="sr-only">Student availability for Monday through Friday</caption>
+              <thead><tr><th scope="col">Start time</th><th scope="col">Monday</th><th scope="col">Tuesday</th><th scope="col">Wednesday</th><th scope="col">Thursday</th><th scope="col">Friday</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <section id="slot-detail" class="slot-detail" tabindex="-1" aria-live="polite"></section>
+        </div>
+      </section>
+    </div>
+    <section id="student-view" class="student-view" aria-labelledby="student-view-title" hidden>
+      <form id="student-lookup" class="student-search">
+        <div class="student-search-copy">
+          <p class="eyebrow">PERSONAL TIMETABLE</p>
+          <h2 id="student-view-title">Find your free time this week.</h2>
+          <p>Enter your roll number to see the gaps between your scheduled classes, Monday through Friday.</p>
+        </div>
+        <div class="student-search-controls">
+          <label for="student-roll">Student roll number</label>
+          <div class="student-input-row">
+            <input id="student-roll" name="roll" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="e.g. 22P-0008" required>
+            <button class="primary" type="submit">Show free time</button>
+          </div>
+          <p class="hint">Roll numbers are matched without regard to letter case. Timetable coverage: 8:00 AM–5:30 PM.</p>
+        </div>
+      </form>
+      <div id="student-error" class="error" role="alert" hidden></div>
+      <div id="student-results" class="student-results" hidden aria-live="polite">
+        <div class="student-result-heading">
+          <div><p class="eyebrow">WEEKLY AVAILABILITY</p><h2 id="student-result-roll"></h2></div>
+          <span id="student-free-count" class="checked-badge"></span>
+        </div>
+        <p class="hint">Free periods are calculated from all scheduled classes, including overlapping and extended meetings.</p>
+        <div id="student-days" class="student-days"></div>
+      </div>
+    </section>
+    <footer><span>Source: Student Timetables V5 · Fall 2026</span><span>Availability suggestions only · No timetable changes are saved</span><span class="made-by">Made by Shoaib</span></footer>
+    <details class="source-notes">
+      <summary>About the timetable data</summary>
+      <p>All 1,199 students and 96 course codes are included. Course titles ending in “…” were shortened in the original PDF. Student names were not provided. Clashes here are calculated from scheduled time overlaps; the source PDF's summary conflict count is not used.</p>
+    </details>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

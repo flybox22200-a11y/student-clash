@@ -16,7 +16,7 @@ This package is ready to deploy, but has not yet been pushed to a GitHub reposit
 
 ## Data visibility
 
-The website loads `dist/data.json` in the browser. That file contains student roll numbers and their timetable associations. Standard GitHub Pages sites are public, and making a source repository private does not by itself make its Pages website private. Confirm that you intend to expose this dataset before publishing. The sign-in protection on the existing ChatGPT-hosted site is not part of this exported code.
+The website loads `dist/data.json` in the browser. That file contains student roll numbers and their timetable associations, and the Student free time menu lets a visitor look up an individual timetable by roll number. Standard GitHub Pages sites are public, and making a source repository private does not by itself make its Pages website private. Confirm that you intend to expose this dataset before publishing. The sign-in protection on the existing ChatGPT-hosted site is not part of this exported code.
 
 ## Local use and verification
 
@@ -40,6 +40,7 @@ node check.mjs
 - Supports an additional class or moving one existing meeting.
 - When moving a meeting, excludes only that meeting, retaining all other scheduled classes.
 - Checks standard timetable start times, with selectable durations. It does not search every possible minute of the day.
+- The **Student free time** menu accepts a roll number and shows that student's exact free periods for each weekday, within the timetable's 8:00 AM–5:30 PM coverage.
 
 Teacher and room availability are not checked. The app suggests times; it does not save rearrangements or send notifications. All times are campus local time. Course titles truncated in the PDF remain truncated; student names were not supplied.
 
@@ -47,6 +48,7 @@ Teacher and room availability are not checked. The app suggests times; it does n
 
 - `dist/index.html`: interface
 - `dist/styles.css`: responsive styles
+- `dist/student.css`: student lookup styles
 - `dist/app.js`: interactions
 - `dist/engine.mjs`: clash detection
 - `dist/data.json`: timetable snapshot

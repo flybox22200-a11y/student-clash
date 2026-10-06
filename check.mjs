@@ -7,6 +7,18 @@ assert.equal(data.students.length,1199);
 assert.equal(engine.groups.size,221);
 assert.equal(new Set([...engine.groups.values()].map(g=>g.code)).size,96);
 assert.equal(data.students.reduce((n,s)=>n+s.meetings.length,0),12838);
+const weekly=engine.freeSlots(' 20p-0104 ');
+assert.equal(weekly.student.roll,'20P-0104');
+assert.equal(weekly.days.length,5);
+for(const {day,slots} of weekly.days){
+ let previousEnd=Math.min(...data.starts);
+ for(const slot of slots){
+  assert.ok(slot.start>=previousEnd&&slot.end<=data.dayEnd&&slot.start<slot.end);
+  assert.ok(!weekly.student.meetings.map(id=>engine.meetingMap.get(id)).some(m=>m.day===day&&m.start<slot.end&&m.end>slot.start));
+  previousEnd=slot.end;
+ }
+}
+assert.throws(()=>engine.freeSlots('not-a-roll-number'),/No timetable found/);
 // An independent set-based occupancy calculation checks every candidate
 // for every section against all individual student schedules.
 let compared=0;
@@ -41,9 +53,16 @@ assert.equal(moved.cells.find(c=>c.day===1&&c.start===480).conflicts.length,2);
 assert.equal(moved.cells.find(c=>c.day===0&&c.start===560).conflicts.length,0);
 assert.equal(moved.cells.find(c=>c.start===1020).status,'outside');
 assert.throws(()=>test.check({code:'X',section:'S',mode:'move',moveId:1}));
+assert.deepEqual(test.freeSlots('a').days.map(d=>d.slots),[
+ [{start:560,end:1050}],
+ [{start:560,end:1050}],
+ [{start:480,end:1050}],
+ [{start:480,end:1050}],
+ [{start:480,end:1050}]
+]);
 const ai=engine.check({code:'AI3002',section:'BAI-5A',duration:80});
 console.log(JSON.stringify({verifiedCandidateChecks:compared,allStudentEntries:12838,BAI5AMachineLearning:{students:ai.group.students.length,free:ai.cells.filter(c=>c.status==='free').map(c=>({day:data.days[c.day],start:c.start,end:c.end}))}},null,2));
 // Check local asset references and required interface controls.
 const html=fs.readFileSync(new URL('./dist/index.html',import.meta.url),'utf8');
 for(const asset of ['styles.css','app.js','engine.mjs','data.json'])assert.ok(fs.existsSync(new URL('./dist/'+asset,import.meta.url)));
-for(const id of ['planner','course','section','session','duration','availability','slot-detail','roster'])assert.ok(html.includes(`id="${id}"`));
+for(const id of ['planner','course','section','session','duration','availability','slot-detail','roster','student-menu','student-lookup','student-roll','student-results','student-days'])assert.ok(html.includes(`id="${id}"`));

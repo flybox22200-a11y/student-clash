@@ -16,6 +16,32 @@ export function createEngine(data){
   g.students.sort((a,b)=>a.roll.localeCompare(b.roll));
   g.meetings.sort((a,b)=>{a=meetingMap.get(a);b=meetingMap.get(b);return a.day-b.day||a.start-b.start;});
  }
+ function freeSlots(roll){
+  if(typeof roll!=='string'||!roll.trim())throw Error('Enter a student roll number.');
+  const student=data.students.find(s=>s.roll.toUpperCase()===roll.trim().toUpperCase());
+  if(!student)throw Error(`No timetable found for roll number "${roll.trim()}". Check the roll number and try again.`);
+  const dayStart=Math.min(...data.starts);
+  const days=data.days.map((name,day)=>{
+   const meetings=student.meetings.map(id=>meetingMap.get(id))
+    .filter(m=>m.day===day&&m.end>dayStart&&m.start<data.dayEnd)
+    .map(m=>({start:Math.max(m.start,dayStart),end:Math.min(m.end,data.dayEnd)}))
+    .sort((a,b)=>a.start-b.start||a.end-b.end);
+   const occupied=[];
+   for(const meeting of meetings){
+    const previous=occupied[occupied.length-1];
+    if(previous&&meeting.start<=previous.end)previous.end=Math.max(previous.end,meeting.end);
+    else occupied.push({...meeting});
+   }
+   const slots=[];let cursor=dayStart;
+   for(const meeting of occupied){
+    if(meeting.start>cursor)slots.push({start:cursor,end:meeting.start});
+    cursor=Math.max(cursor,meeting.end);
+   }
+   if(cursor<data.dayEnd)slots.push({start:cursor,end:data.dayEnd});
+   return {day,name,slots};
+  });
+  return {student,days};
+ }
  function check({code,section,duration=80,mode='extra',moveId=null}){
   const group=groups.get(code+'|'+section);
   if(!group)throw Error('Choose a valid course and section.');
@@ -42,5 +68,5 @@ export function createEngine(data){
   }
   return {group,mode,duration,moved,cells};
  }
- return {data,meetingMap,groups,check};
+ return {data,meetingMap,groups,check,freeSlots};
 }

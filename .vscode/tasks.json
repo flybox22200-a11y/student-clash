@@ -1,0 +1,19 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Serve ClassSlot site",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"http.server",
+				"8000",
+				"--directory",
+				"dist"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
