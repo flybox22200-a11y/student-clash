@@ -1,8 +1,26 @@
 import {createEngine} from './engine.mjs';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const clock=n=>`${Math.floor(n/60)%12||12}:${String(n%60).padStart(2,'0')} ${n>=720?'PM':'AM'}`;
-const range=(start,end)=>`${clock(start)} – ${clock(end)}`;
+function $(id) {
+    return document.getElementById(id);
+}
+
+function esc(s) {
+  var replacements = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+  return String(s).replace(/[&<>"']/g, function(c) { return replacements[c]; });
+}
+
+function clock(n){
+  var hours = Math.floor(n/60)%12;
+  if (!hours) hours = 12;
+  var minutes = String(n%60).padStart(2,'0');
+  var ampm = n >= 720 ? 'PM' : 'AM';
+  return `${hours}:${minutes} ${ampm}`;
+}
+
+function range(start,end) {
+    let startText = clock(start);
+    let endText = clock(end);
+    return `${startText} – ${endText}`;
+}
 let engine,result,selectedSlot;
 function fail(message){$('error').textContent=message;$('error').hidden=false;}
 function mode(){return document.querySelector('input[name="mode"]:checked').value;}
@@ -10,7 +28,8 @@ function group(){return engine.groups.get($('course').value+'|'+$('section').val
 function stale(){if(result)$('stale').hidden=false;}
 function showView(view){
  const student=view==='student';
- $('faculty-view').hidden=student;$('student-view').hidden=!student;
+ $('faculty-view').hidden=student;
+ $('student-view').hidden=!student;
  $('planner-menu').classList.toggle('active',!student);$('student-menu').classList.toggle('active',student);
  if(student){
   $('planner-menu').removeAttribute('aria-current');$('student-menu').setAttribute('aria-current','page');
@@ -25,8 +44,13 @@ function showView(view){
 function lookupStudent(event){
  event.preventDefault();$('student-error').hidden=true;
  try{
-  const {student,days}=engine.freeSlots($('student-roll').value);
-  const count=days.reduce((total,day)=>total+day.slots.length,0);
+  var lookup = engine.freeSlots($('student-roll').value);
+  var student = lookup.student;
+  var days = lookup.days;
+  var count = 0;
+  for (let day of days) {
+    count = count + day.slots.length;
+  }
   $('student-result-roll').textContent=student.roll;
   $('student-free-count').textContent=`${count} free ${count===1?'period':'periods'} this week`;
   const container=$('student-days');container.replaceChildren();
@@ -50,7 +74,8 @@ function lookupStudent(event){
  }
 }
 function syncSections(){
- const sections=[...engine.groups.values()].filter(g=>g.code===$('course').value).sort((a,b)=>a.section.localeCompare(b.section));
+ const allGroups = [...engine.groups.values()];
+ const sections=allGroups.filter(g=>g.code===$('course').value).sort((a,b)=>a.section.localeCompare(b.section));
  $('section').replaceChildren(...sections.map(g=>new Option(g.section,g.section)));
  syncGroup();
 }
@@ -77,7 +102,9 @@ function syncMode(){
 function configuration(){return {code:$('course').value,section:$('section').value,duration:Number($('duration').value),mode:mode(),moveId:mode()==='move'?Number($('session').value):null};}
 function run(){
  try{
-  result=engine.check(configuration());$('error').hidden=true;$('empty').hidden=true;$('result-content').hidden=false;$('stale').hidden=true;
+  let settings = configuration();
+  result=engine.check(settings);
+  $('error').hidden=true;$('empty').hidden=true;$('result-content').hidden=false;$('stale').hidden=true;
   renderResults();return result;
  }catch(error){fail(error.message);throw error;}
 }
@@ -86,9 +113,9 @@ function renderResults(){
  $('result-title').textContent=`${g.code} · ${g.title}`;
  $('result-description').textContent=`${g.section} · ${g.students.length} enrolled students · ${duration}-minute ${moved?'replacement':'additional'} class`;
  $('checked-badge').textContent='Full timetables checked';
- const free=cells.filter(c=>c.status==='free').length;
- const busy=cells.filter(c=>c.status==='busy').length;
- const outside=cells.filter(c=>c.status==='outside').length;
+ let free = cells.filter(c=>c.status==='free').length;
+ let busy = cells.filter(c=>c.status==='busy').length;
+ let outside = cells.filter(c=>c.status==='outside').length;
  $('summary').innerHTML=`<div class="metric good"><strong>${free}</strong><span>slots free for everyone</span></div><div class="metric"><strong>${g.students.length}</strong><span>students checked</span></div><div class="metric"><strong>${busy}</strong><span>slots with student clashes</span></div>`;
  const tbody=$('availability').querySelector('tbody');tbody.replaceChildren();
  for(const start of engine.data.starts){
@@ -109,7 +136,11 @@ function renderResults(){
 }
 function showSlot(c,focus){
  selectedSlot=c;
- document.querySelectorAll('.slot').forEach(b=>{const selected=Number(b.dataset.day)===c.day&&Number(b.dataset.start)===c.start;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
+ document.querySelectorAll('.slot').forEach(b=>{
+   const selected=Number(b.dataset.day)===c.day&&Number(b.dataset.start)===c.start;
+   b.classList.toggle('selected',selected);
+   b.setAttribute('aria-pressed',String(selected));
+ });
  const title=`${engine.data.days[c.day]} · ${range(c.start,c.end)}`;
  const labels={free:'Available for everyone',busy:'Student clashes',outside:'Outside timetable hours',current:'Current class'};
  let html=`<div class="detail-top"><h3>${title}</h3><span class="status ${c.status==='free'?'free':''}">${labels[c.status]}</span></div>`;
@@ -127,7 +158,10 @@ function showSlot(c,focus){
 }
 async function init(){
  try{
-  const response=await fetch('./data.json');if(!response.ok)throw Error('The timetable could not be loaded. Reload the page to try again.');
+  const response=await fetch('./data.json');
+  if(!response.ok){
+   throw Error('The timetable could not be loaded. Reload the page to try again.');
+  }
   engine=createEngine(await response.json());
   const courses=[...new Map([...engine.groups.values()].map(g=>[g.code,{code:g.code,title:g.title}])).values()].sort((a,b)=>a.code.localeCompare(b.code));
   $('course').replaceChildren(...courses.map(c=>new Option(`${c.code} · ${c.title}`,c.code)));
